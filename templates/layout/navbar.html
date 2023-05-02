@@ -1,0 +1,40 @@
+{% load static %}
+<div class="app-container">
+    <div class="app-header">
+        <div class="app-header-left">
+            <a class="home-link" href="/">
+                DataPop
+            </a>
+        </div>
+        <div class="app-header-right">
+            {% if not request.user.is_authenticated %}
+                
+                    <a class="login-register-link" href="/login">Login</a>
+    
+                    <a style="margin-right: 10px;" class="login-register-link"
+                        href="/register">Register</a>
+    
+                {% else %}
+                 <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button"
+                    data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
+                    <img class="profile-img" src="{% static 'chat/img/user_avatar.jpg' %}"> 
+                    <span class="profile-txt">{{ user.get_full_name }}</span>
+                </a> 
+                <div class="dropdown-menu dropdown-menu-end " style="box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2); border: white;"
+                    aria-labelledby="navbarDropdown">                  
+
+                    <a class="dropdown-item" style="--bs-dropdown-link-hover-bg: #f6fcff; color: black; --bs-dropdown-link-active-bg: #dcf3ff;"
+                        href="\logout"
+                        onclick="event.preventDefault();
+                                                 document.getElementById('logout-form').submit();">
+                        Logout
+                    </a>
+
+                    <form id="logout-form" action="\logout\" method="POST" class="d-none">
+                        {% csrf_token %}
+                    </form>
+                </div>{% comment %}  {% endcomment %}
+                {% endif %}
+        </div>
+    </div>
+    <div class="afterbar-space"></div>

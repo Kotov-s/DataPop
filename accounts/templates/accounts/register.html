@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+
+
+{% block content %}
+
+    <main class="py-4 auth-card" >
+        <div class="pb-3 projects-section">
+{% if not request.user.is_authenticated %}
+
+        <div class="projects-section-header"> <p>Register</p> </div>
+        <form method='POST'>{% csrf_token %}
+            {% for field in form %}
+                <p><label class="col-md-4 col-form-label text-md-end">{{ field.label }}:</label>
+                {{ field }}</p>
+                
+                {% if field.errors %}
+                    <ul class="errors">
+                        {% for error in field.errors %}
+                            <li class="text-danger" style="font-size: 13px;">{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            {% endfor %}
+
+            <button class="btn btn-primary" type='submit'>Register</button>
+        </form>
+        <p>Already have an account? Please <a href='/login'>Login</a></p>
+        </div>
+
+{% else %}
+        <p>You're already logged in and cannot register. Would you like to <a href='/logout/'>logout</a>?</p>
+{% endif %}
+        </div>
+    </main>
+{% endblock %}
