@@ -343,7 +343,7 @@ a {
 
 .comment-section-user {
   display: flex;
-  background-color: white;
+  background-color: rgb(172, 212, 235);
   border-radius: 32px;
   padding: 32px;
   width: 50%;

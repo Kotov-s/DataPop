@@ -1,12 +1,15 @@
 $(function () {
-  var INDEX = 0;
+  setTimeout(function() {      
+    generate_message('Это юмореска-бот. Введите слово по которому хотите найти анекдот', 'user');  
+  }, 0);
+  var INDEX = 0; 
   $("#chat-submit").click(function (e) {
     e.preventDefault();
     var msg = $("#chat-input").val();
     if (msg.trim() == '') {
       return false;
     }
-    generate_message(msg, 'self');
+
     var buttons = [
       {
         name: 'Existing User',
@@ -17,9 +20,43 @@ $(function () {
         value: 'new'
       }
     ];
-    setTimeout(function () {
-      generate_message(msg, 'user');
-    }, 0)
+  
+
+    generate_message(msg, 'self');
+
+    $.ajax({
+      type: "GET",
+      url: '/chat/return_message',
+      data: {
+          "result": msg,
+      },
+      dataType: "json",
+      success: function (data) {
+
+        if(msg.trim() == ''){
+          return false;
+        }
+        
+        var buttons = [
+            {
+              name: 'Existing User',
+              value: 'existing'
+            },
+            {
+              name: 'New User',
+              value: 'new'
+            }
+          ];
+        setTimeout(function() {      
+          generate_message(data['result'], 'user');  
+        }, 0)
+
+
+      },
+      failure: function () {
+          alert("failure");
+      }
+  });
 
   })
 

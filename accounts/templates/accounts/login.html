@@ -1,17 +1,14 @@
 {% extends "base.html" %}
 
-
 {% block content %}
     <main class="py-4 auth-card" >
         <div class="pb-3 projects-section">
-{% if not request.user.is_authenticated %}
+        {% if not request.user.is_authenticated %}
             <div class="projects-section-header"> <p>Login</p> </div>
-
             <form method='POST'>{% csrf_token %}
                 {% for field in form %}
                 <p><label class="col-form-label text-md-end">{{ field.label }}:</label> 
                 {{ field}}</p>
-                
                 {% if field.errors %}
                     <ul class="errors">
                         {% for error in field.errors %}
@@ -19,15 +16,14 @@
                         {% endfor %}
                     </ul>
                 {% endif %}
-            {% endfor %}
+                {% endfor %}
                 <button class="btn btn-primary" type='submit'>Login</button>
             </form>
-
             <p>Need an account? Please <a href='/register'>Register</a></p>
             </div>
-{% else %}
+        {% else %}
             <p>You're already logged in. Would you like to <a href='/logout/'>logout</a>?</p>
-{% endif %}
+        {% endif %}
     </div>
 </main>
 {% endblock %}
