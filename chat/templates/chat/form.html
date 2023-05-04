@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+{% block content %}
+  <main class="py-4 auth-card">
+    <div class="pb-3 projects-section">
+      <div class="projects-section-header">
+        <p>Upload CSV file to expolre</p>
+      </div>
+      <form action="" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="col-md-6">
+          {% for field in form %}
+            <label for="formFile" class="form-label">Upload {{ field.label }}</label>
+            {{ field|add_class:'form-control' }}
+            {% if field.errors %}
+              <ul class="errors">
+                {% for error in field.errors %}
+                  <li class="text-danger" style="font-size: 13px;">{{ error }}</li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+          {% endfor %}
+        </div>
+        <p>
+          <button type="submit" class="btn btn-primary mt-3">Send</button>
+        </p>
+      </form>
+    </div>
+  </main>
+{% endblock %}

@@ -130,4 +130,11 @@ STATICFILES_DIRS = [
 ]
 
 
+MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_URL = '/media/'
+
+
+LOGIN_URL = '/login/'
+
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
