@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <main class="py-4 auth-card" >
+    <main class="m-auto py-4 w-50 bg-white ps-5 shadow rounded-5" >
         <div class="pb-3 projects-section">
         {% if not request.user.is_authenticated %}
         <div class="projects-section-header"> <p>Register</p> </div>
@@ -17,7 +17,7 @@
                     </ul>
                 {% endif %}
             {% endfor %}
-            <button class="btn btn-primary" type='submit'>Register</button>
+            <button class="btn btn-primary mb-2" type='submit'>Register</button>
         </form>
         <p>Already have an account? Please <a href='/login'>Login</a></p>
         </div>

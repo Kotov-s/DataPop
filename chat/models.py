@@ -14,5 +14,4 @@ class Message(models.Model):
     thread = models.ForeignKey(Threads, on_delete=models.CASCADE)
     title = models.CharField(max_length=200, default='')
     content_path = models.CharField(max_length=200, default='')
-    message = models.TextField()
     created_at = models.DateTimeField(default=timezone.now)

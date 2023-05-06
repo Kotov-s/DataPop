@@ -1,8 +1,8 @@
 {% load static %}
-<div class="app-container">
-    <div class="app-header">
+<div>
+    <div class="navbar bg-primary-subtle">
         <div class="app-header-left">
-            <a class="home-link" href="/">
+            <a class="home-link mx-3" href="/">
                 DataPop
             </a>
         </div>
@@ -17,7 +17,7 @@
                 {% else %}
                  <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button"
                     data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
-                    <img class="profile-img" src="{% static 'chat/img/user_avatar.jpg' %}"> 
+                    <img class="rounded-5" style="width: 32px; height: 32px;" src="{% static 'chat/img/user_avatar.jpg' %}"> 
                     <span class="profile-txt">{{ user.get_full_name }}</span>
                 </a> 
                 <div class="dropdown-menu dropdown-menu-end " style="box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2); border: white;"
@@ -37,4 +37,4 @@
                 {% endif %}
         </div>
     </div>
-    <div class="afterbar-space"></div>
+    <div class="m-5"></div>

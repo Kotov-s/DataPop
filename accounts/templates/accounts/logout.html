@@ -2,15 +2,15 @@
 
 
 {% block content %}
-    <main class="py-4 auth-card" >
+    <main class="m-auto py-4 w-50 bg-white ps-5 shadow rounded-5" >
         <div class="pb-3 projects-section">
 {% if request.user.is_authenticated %}
 
-            <div class="projects-section-header"> <p>Login</p> </div>
+            <div class="projects-section-header" > <p>Login</p> </div>
 
             <form method='POST'>{% csrf_token %}
                 <p>Are you sure you want to logout?</p>
-                <button type='submit'>Yes, logout.</button>
+                <button type='btn btn-primary mb-2'>Yes, logout.</button>
             </form>
             </div>
 

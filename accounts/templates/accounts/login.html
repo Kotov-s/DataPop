@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <main class="py-4 auth-card" >
+    <main class="m-auto w-50 bg-white ps-5 shadow rounded-5">
         <div class="pb-3 projects-section">
         {% if not request.user.is_authenticated %}
-            <div class="projects-section-header"> <p>Login</p> </div>
+            <div class="projects-section-header" > <p>Login</p> </div>
             <form method='POST'>{% csrf_token %}
                 {% for field in form %}
                 <p><label class="col-form-label text-md-end">{{ field.label }}:</label> 
@@ -17,7 +17,7 @@
                     </ul>
                 {% endif %}
                 {% endfor %}
-                <button class="btn btn-primary" type='submit'>Login</button>
+                <button class="btn btn-primary mb-2" type='submit'>Login</button>
             </form>
             <p>Need an account? Please <a href='/register'>Register</a></p>
             </div>
