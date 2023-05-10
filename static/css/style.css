@@ -48,3 +48,13 @@
 .custom-bg-color {
     background-color: #a6bbeb;
 }
+
+
+.alert {
+    transition: all 1s ease-in-out;
+  }
+  
+.alert.show {
+transform: translateY(0);
+box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+}

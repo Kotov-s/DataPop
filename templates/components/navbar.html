@@ -9,10 +9,10 @@
         <div class="app-header-right">
             {% if not request.user.is_authenticated %}
                 
-                    <a class="login-register-link" href="/login">Login</a>
+                    <a class="login-register-link" href="/login">Войти</a>
     
                     <a style="margin-right: 10px;" class="login-register-link"
-                        href="/register">Register</a>
+                        href="/register">Зарегистрироваться</a>
     
                 {% else %}
                  <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button"
@@ -27,7 +27,7 @@
                         href="\logout"
                         onclick="event.preventDefault();
                                                  document.getElementById('logout-form').submit();">
-                        Logout
+                        Выйти
                     </a>
 
                     <form id="logout-form" action="\logout\" method="POST" class="d-none">

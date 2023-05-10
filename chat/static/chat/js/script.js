@@ -1,217 +1,138 @@
-// $("#my-form").submit(function (e) {
-//   e.preventDefault();
+jQuery(document).ready(function () {
+  var selectedOptionId = $('#analysis-options option:selected').attr('id');
+  if (selectedOptionId === 'columns-analysis') {
+    updateColumns();
+  }
+  else {
+    $('select[name=columns]').prop('disabled', true);
+    $('select[name=columns]').selectpicker('refresh');
+  }
 
-//   // Get the values of the selected options
-//   var analysisOption = $("#analysis-options").val();
-//   var columns = $("#columns").val();
-
-//   // Generate the message
-//   var message = "You selected analysis option " + analysisOption + " and columns " + columns.join(", ");
-
-//   alert(message);
-// });
-
+  jQuery('#analysis-options').change(function () {
+    updateColumns();
+  });
+});
 
 
 $("#my-form").submit(function (e) {
   e.preventDefault();
 
-  // Get the values of the selected options
+  var selectedOptionId = $('#analysis-options option:selected').attr('id');
   var analysisOption = $("#analysis-options").val();
-  var columns = $("#columns").val();
-  // Make the AJAX request
-  $.ajax({
+  var columnName = $("#columns").val();
+
+  if (selectedOptionId === 'full-analysis') {
+    columnName = "";
+    $.ajax({
       type: "POST",
-      url: `/chat/return_message/${userId}/${csvSlug}`,
+      url: `/chat/${analysisOption}`,
       data: {
-          "analysisOption": analysisOption,
-          "columns": columns,
-          "csrfmiddlewaretoken": $('input[name=csrfmiddlewaretoken]').val()
+        "threadId": threadId,
+        "columnName": columnName,
+        "csrfmiddlewaretoken": $('input[name=csrfmiddlewaretoken]').val()
       },
       success: function (data) {
-          createMessage(data);
+        createMessage(data);
       },
       error: function (error) {
-          alert("An error occurred: " + error);
+        alert("An error occurred: " + error);
       }
-  });
+    });
+  }
+  else if (columnName) {
 
-  
+    $.ajax({
+      type: "POST",
+      url: `/chat/${analysisOption}`,
+      data: {
+        "threadId": threadId,
+        "columnName": columnName,
+        "csrfmiddlewaretoken": $('input[name=csrfmiddlewaretoken]').val()
+      },
+      success: function (data) {
+        createMessage(data);
+      },
+      error: function (error) {
+        alert("An error occurred: " + error);
+      }
+
+    });
+    // Если мы удалили колонку, то удалить ее из селекта
+    if (analysisOption == 'delete_column') {
+      var optionToRemove = $(`select[name=columns] option[value="${columnName}"]`);
+      optionToRemove.remove();
+      $('select[name=columns]').selectpicker('refresh');
+    }
+
+  }
+
+  else {
+    // Если выбран пункт с работой для колонки, но не выбрана сама колонка, то показать предупреждение
+    var alertEl = document.createElement("div");
+    alertEl.className = "alert d-flex align-items-center fixed-top w-25 rounded-5 m-4 ms-auto alert-danger";
+    alertEl.setAttribute("role", "alert");
+    alertEl.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-exclamation-triangle-fill flex-shrink-0 me-2" viewBox="0 0 16 16" role="img" aria-label="Warning:"><path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"></path></svg><div>Вы не выбрали колонку для исследования</div>';
+
+    document.body.appendChild(alertEl);
+
+    setTimeout(function () {
+      alertEl.remove();
+    }, 1500);
+  }
+
 });
 
-function createMessage(data) {
-  // Create a new div element
-  var message = document.createElement("div");
-  // Set the innerHTML of the div element to the data received from the AJAX request
-  message.innerHTML = data;
-  message.classList.add("bg-white", "rounded", "p-3", "mx-3", "shadow", "mb-3", "overflow-auto");
-  var messageContainer = document.querySelector("#message-container");
-  messageContainer.appendChild(message);
-  window.scrollTo(0, document.body.scrollHeight);
+function updateColumns() {
+
+  var selectedOptionId = $('#analysis-options option:selected').attr('id');
+  var analysisOption = $("#analysis-options").val();
+  if (selectedOptionId === 'columns-analysis') {
+    $.ajax({
+      type: "POST",
+      url: `/chat/columns`,
+      data: {
+        "threadId": threadId,
+        "csrfmiddlewaretoken": $('input[name=csrfmiddlewaretoken]').val()
+      },
+      success: function (data) {
+        cols = data.columns;
+        console.log(cols);
+        var selectElement = $('select[name=columns]');
+        selectElement.empty(); // remove old options
+        for (var i = 0; i < cols.length; i++) {
+          col_name = cols[i];
+          selectElement.append('<option value=' + col_name + '>' + col_name + '</option>');
+        }
+        selectElement.prop('disabled', false);
+        selectElement.selectpicker('refresh');
+      },
+      error: function (error) {
+        alert("An error occurred: " + error);
+      }
+    });
+  }
+  else {
+    $('select[name=columns]').prop('disabled', true);
+    $('select[name=columns]').selectpicker('refresh');
+  }
 }
 
 
 
+function createMessage(data) {
+  var message = document.createElement("div");
 
+  // Создаем заголовок
+  var header = document.createElement("h4");
+  header.innerText = data.title;
 
+  message.innerHTML = data.html;
+  message.classList.add("bg-white", "rounded", "p-3", "mx-3", "shadow", "mb-3", "overflow-auto");
 
+  // Добавляем заголовок в начало элемента
+  message.insertBefore(header, message.firstChild);
 
-// document.getElementById("chat-submit").addEventListener("click", function(event) {
-//   event.preventDefault();
-//   var formData = new FormData(document.getElementById("my-form"));
-//   var xhr = new XMLHttpRequest();
-//   xhr.open("POST", "/chat/return_message/");
-//   xhr.onload = function() {
-//     if (xhr.status === 200) {
-//       // Handle successful response
-//       var message = xhr.responseText;
-//       // Display the message on the page
-//       document.getElementById("chat-output").innerHTML = message;
-//     } else {
-//       // Handle error response
-//     }
-//   };
-//   xhr.send(formData);
-// });
-
-
-// $(function () {
-//   setTimeout(function() {      
-//     generate_message('Это юмореска-бот. Введите слово по которому хотите найти анекдот', 'user');  
-//   }, 0);
-//   var INDEX = 0; 
-//   $("#chat-submit").click(function (e) {
-//     e.preventDefault();
-//     var msg = $("#chat-input").val();
-//     if (msg.trim() == '') {
-//       return false;
-//     }
-
-//     var buttons = [
-//       {
-//         name: 'Existing User',
-//         value: 'existing'
-//       },
-//       {
-//         name: 'New User',
-//         value: 'new'
-//       }
-//     ];
-  
-
-//     generate_message(msg, 'self');
-
-//     $.ajax({
-//       type: "GET",
-//       url: '/chat/return_message',
-//       data: {
-//           "result": msg,
-//       },
-//       dataType: "json",
-//       success: function (data) {
-
-//         if(msg.trim() == ''){
-//           return false;
-//         }
-        
-//         var buttons = [
-//             {
-//               name: 'Existing User',
-//               value: 'existing'
-//             },
-//             {
-//               name: 'New User',
-//               value: 'new'
-//             }
-//           ];
-//         setTimeout(function() {      
-//           generate_message(data['result'], 'user');  
-//         }, 0)
-
-
-//       },
-//       failure: function () {
-//           alert("failure");
-//       }
-//   });
-
-//   })
-
-
-
-//   function generate_message(msg, type) {
-//     INDEX++;
-//     let str = "";
-//     let avatar = type === 'self' ? userAvatar : botAvatar;
-//     // let sectionClass = type === 'self' ? 'comment-section-user' : 'comment-section-bot';
-//     str += `<div class='bg-white m-3 p-3 rounded shadow'>`;
-//     str += `<div class='message-header-container'>`;
-//     str += `<img style="width: 32px; height: 32px;" class="rounded-5" src="${avatar}">`;    
-//     str += `<span class='message-line'>sdfsdfsdf</span>`;
-//     str += `</div>`;
-//     str += `<div class='message-content'>`;
-//     str += `<div class="message-header">${msg}</div></div></div>`;
-//     $(".chat-logs").append(str);
-//     $("#cm-msg-" + INDEX).hide().fadeIn(0);
-//     if (type === 'self') {
-//         $("#chat-input").val('');
-//     }
-//     $(".chat-logs").stop().animate({ scrollTop: $(".chat-logs")[0].scrollHeight }, 1000);
-// }
-
-
-//   // function generate_button_message(msg, buttons) {
-//   //   /* Buttons should be object array 
-//   //     [
-//   //       {
-//   //         name: 'Existing User',
-//   //         value: 'existing'
-//   //       },
-//   //       {
-//   //         name: 'New User',
-//   //         value: 'new'
-//   //       }
-//   //     ]
-//   //   */
-//   //   INDEX++;
-//   //   var btn_obj = buttons.map(function (button) {
-//   //     return "              <li class=\"button\"><a href=\"javascript:;\" class=\"btn btn-primary chat-btn\" chat-value=\"" + button.value + "\">" + button.name + "<\/a><\/li>";
-//   //   }).join('');
-//   //   var str = "";
-//   //   str += "<div id='cm-msg-" + INDEX + "' class=\"chat-msg user\">";
-//   //   str += "          <span class=\"msg-avatar\">";
-//   //   str += "            <img src=\"https:\/\/image.crisp.im\/avatar\/operator\/196af8cc-f6ad-4ef7-afd1-c45d5231387c\/240\/?1483361727745\">";
-//   //   str += "          <\/span>";
-//   //   str += "          <div class=\"cm-msg-text\">";
-//   //   str += msg;
-//   //   str += "          <\/div>";
-//   //   str += "          <div class=\"cm-msg-button\">";
-//   //   str += "            <ul>";
-//   //   str += btn_obj;
-//   //   str += "            <\/ul>";
-//   //   str += "          <\/div>";
-//   //   str += "        <\/div>";
-//   //   $(".chat-logs").append(str);
-//   //   $("#cm-msg-" + INDEX).hide().fadeIn(300);
-//   //   $(".chat-logs").stop().animate({ scrollTop: $(".chat-logs")[0].scrollHeight }, 1000);
-//   //   $("#chat-input").attr("disabled", true);
-//   // }
-
-//   // $(document).delegate(".chat-btn", "click", function() {
-//   //   var value = $(this).attr("chat-value");
-//   //   var name = $(this).html();
-//   //   $("#chat-input").attr("disabled", false);
-//   //   generate_message(name, 'self');
-//   // })
-
-//   // $("#chat-circle").click(function() {    
-//   //   $("#chat-circle").toggle('scale');
-//   //   $(".chat-box").toggle('scale');
-//   // })
-
-//   // $(".chat-box-toggle").click(function() {
-//   //   $("#chat-circle").toggle('scale');
-//   //   $(".chat-box").toggle('scale');
-//   // })
-
-// })
+  var messageContainer = document.querySelector("#message-container");
+  messageContainer.appendChild(message);
+  window.scrollTo(0, document.body.scrollHeight);
+}

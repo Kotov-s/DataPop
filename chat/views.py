@@ -8,6 +8,20 @@ from django.utils import timezone
 from .models import Threads, Message
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
+from . import data_analysis
+import shutil
+from django.template.loader import render_to_string
+
+def create_message(thread, my_title, file_path):
+    Message.objects.create(
+        thread=thread,
+        title=my_title,
+        content_path=file_path
+    )
+    html = render_to_string(file_path, {'title': my_title})
+    data = {'title': my_title, 'html': html}
+    return data
+
 
 def chat(request, user_id, csv_slug):
     if user_id != request.user.id:
@@ -28,18 +42,15 @@ def chat(request, user_id, csv_slug):
 
 def file_form(request):
     if request.method == "POST":
-        # create a form instance and populate it with data from the request:
         form = FileForm(request.POST, request.FILES)
-        # check whether it's valid:
         if form.is_valid():
-            # process the data in form.cleaned_data as required
             file = request.FILES['file']
             file_name = 'data.csv'
             user_folder = f'users/user_{request.user.id}/csv'
             user_folder_path = os.path.join(settings.MEDIA_ROOT, user_folder)
             os.makedirs(user_folder_path, exist_ok=True)
             file_path = os.path.join(user_folder_path, file_name)
-            # Check if a file with the same name already exists and rename the uploaded file if necessary
+            # Проверка, если файл существует, иначе создаем другой номер у файла
             unique_file_path = file_path
             i = 1
             while os.path.exists(unique_file_path):
@@ -50,19 +61,24 @@ def file_form(request):
                 for chunk in file.chunks():
                     destination.write(chunk)
 
-            # inserting data into database
-            formatted_time = timezone.now().strftime('%Y-%m-%d %H:%M:%S')\
+            # Копия CSV
+            edited_file_name = f'edited_{file_name[:-4]}_{i-1}.csv'
+            edited_file_path = os.path.join(user_folder_path, edited_file_name)
+            shutil.copy2(unique_file_path, edited_file_path)
+
+            formatted_time = timezone.now().strftime('%Y-%m-%d %H:%M:%S')
 
             thread = Threads.objects.create(
                 user=User.objects.get(id=request.user.id),
                 csv_path=unique_file_path,
+                edited_csv_path=edited_file_path,
                 slug=f'{file_name[:-4]}_{i-1}',
                 title=f'The post was created in {formatted_time}'
             )
-            generate_report(thread.id, thread.slug, thread.user_id)
+            generate_report(thread.id, thread.slug, thread.user_id, thread.csv_path)
             return HttpResponseRedirect(f"/chat/{request.user.id}/{file_name[:-4]}_{i-1}")
 
-    # if a GET (or any other method) we'll create a blank form
+    # если GET (или другой меттод) будет создан этот контекст
     else:
         context = {
             'form' : FileForm(),
@@ -70,44 +86,96 @@ def file_form(request):
         
     return render(request, "chat/form.html", context)
 
-def generate_report(thread_id, csv_name, user_id):
+def generate_report(thread_id, csv_name, user_id, csv_path):
     user_folder = f'users/user_{user_id}/media/{csv_name}'
     user_folder_path = os.path.join(settings.MEDIA_ROOT, user_folder)
     os.makedirs(user_folder_path, exist_ok=True)
 
     file_path = os.path.join(user_folder_path, 'first.html')
 
-    with open(file_path, 'w') as f:
-        f.write('<h1>HI!</h1>')
+    data_analysis.first_analysis_file(csv_path, file_path)
 
     Message.objects.create(
         thread=Threads.objects.get(id=thread_id),
-        title='Here is first report',
+        title='Это ваш предварительный анализ данных',
         content_path=file_path
     )
+       
+
+def get_columns(request, user_id, csv_slug):
+    if request.method == 'POST':
+        thread_id = request.POST.get('threadId')
+        thread = Threads.objects.get(id=thread_id)
+        edited_csv_path = thread.edited_csv_path
+        
+        columns = data_analysis.get_columns(edited_csv_path)
+        data = {'columns': columns}
+        return JsonResponse(data)  
+
+def columns_func(request, analysis_func):
+    if request.method == 'POST':
+        formatted_time = timezone.now().strftime('%Y_%m_%d_%H_%M_%S')
+
+        thread_id = request.POST.get('threadId') 
+        thread = Threads.objects.get(id=thread_id)
+        edited_csv_path = thread.edited_csv_path 
+        user_id = thread.user_id
+        csv_slug = thread.slug
+        my_title = 'Не удалось выполнить действие'
+        
+        if analysis_func != 'columns':
+            file_path = create_file(user_id, csv_slug, analysis_func, formatted_time)
+
+        column_name = request.POST.get('columnName')
+
+        match analysis_func:
+            case 'delete_column':
+                data_analysis.delete_column(edited_csv_path, file_path, column_name)
+                my_title = 'Удалеие столбца'
+            case 'pie_plot':
+                user_folder = f'users/user_{user_id}/{csv_slug}/img'
+                data_analysis.pie_plot(edited_csv_path, file_path, column_name, user_folder)
+                my_title = 'Круговая диаграмма'
+            case 'columns':
+                columns = data_analysis.get_columns(edited_csv_path)
+                data = {'columns': columns}
+                return JsonResponse(data)  
+
+            case 'drop_na':
+                data_analysis.drop_na(edited_csv_path, file_path)
+                my_title = 'Удалеие строк с NaN'
+            case 'object_statistics':
+                data_analysis.object_statistics(edited_csv_path, file_path)
+                my_title = 'Статистика объектов'  
+            case 'all_rows':
+                data_analysis.all_rows(edited_csv_path, file_path)
+                my_title = 'Все строки'
+            case 'heatmap':
+                data_analysis.heat_map(edited_csv_path, file_path)
+                my_title='Тепловая карта' 
+            case 'boxplot_graph':
+                # Путь внутри папки chat/static/
+                user_folder = f'users/user_{user_id}/{csv_slug}/img'
+                data_analysis.boxplot_graph(edited_csv_path, file_path, user_folder)
+                my_title='Ящик с усами' 
+            case 'back_to_roots':
+                # Путь внутри папки chat/static/
+                csv_path = thread.csv_path
+                data_analysis.back_to_roots(edited_csv_path, csv_path, file_path)
+                my_title='Исходное положение' 
+            case _:
+                my_title='Не удалось найти функцию' 
+        
+        data = create_message(thread, my_title, file_path)                 
+        return JsonResponse(data) 
 
 
+def create_file(user_id, csv_slug, file_name, formatted_time):
+    # Создаем директорию
+    user_folder = f'users/user_{user_id}/media/{csv_slug}'
+    user_folder_path = os.path.join(settings.MEDIA_ROOT, user_folder)
+    os.makedirs(user_folder_path, exist_ok=True)
 
-def return_message(request, user_id, csv_slug):
-    return render(request, 'explanations/first.html')
-    # keyWord = request.GET.get('result', None)
-    # HEADERS = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:84.0) Gecko/20100101 Firefox/84.0',
-    #            'accept': '*/*'}
-    # URL = 'https://www.anekdot.ru/search/?query='
-    # url = f'{URL}{keyWord}'
-    # try:
-    #     response = requests.get(url, headers=HEADERS)
-    # except requests.ConnectionError:
-    #     return JsonResponse({'result': 'Сетевая ошибка'})
-    # if response.status_code == 200:
-    #     soup = BeautifulSoup(response.text, 'html.parser')
-    #     try:
-    #         jokes = soup.find_all(
-    #             'div', {'class': 'topicbox'})
-    #         joke = str(jokes[0].find(
-    #             'div', {'class': 'text'})).replace('<span style="background-color:#ffff80">', '')
-    #         return JsonResponse({'result': joke})
-    #     except:
-    #         return JsonResponse({'result': 'По вашему запросу ничего не найдено.'})
-    # else:
-    #     return JsonResponse({'result': 'Ошибка на сервере'})
+    # Создаем файл для помещения в него таблицы
+    file_path = os.path.join(user_folder_path, f'{file_name}{formatted_time}.html')
+    return file_path

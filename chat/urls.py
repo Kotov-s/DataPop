@@ -6,5 +6,10 @@ from . import views
 urlpatterns = [
     path('chat/<int:user_id>/<slug:csv_slug>', login_required(views.chat) ),
     path('', login_required(views.file_form) ),
-    path('chat/return_message/<int:user_id>/<slug:csv_slug>', login_required(views.return_message) ),
+
+    # ajax get columns
+    # path('chat/columns/<int:user_id>/<slug:csv_slug>', login_required(views.get_columns) ),
+
+    # ajax requests      
+    path('chat/<slug:analysis_func>', login_required(views.columns_func) ),
 ]

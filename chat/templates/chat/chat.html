@@ -2,68 +2,71 @@
 {% load static %}
 {% block content %}
   <div id="body">
+
+
     <div class="chat-box">
-
-
-      <div class="bg-white rounded p-3 mx-3 shadow mb-3 overflow-auto">
+     
         {% for message in messages %} 
-        
-          <p class="home-link">{{message.title}}</p>
+        <div class="bg-white rounded p-3 mx-3 shadow mb-3 overflow-auto">
+          <p class="h4">{{message.title}}</p>
           {% include message.content_path %}
+        </div>
         {% endfor %}
     
-        </div>
       <div class="chat-box-body mb-5">
-        
-
-        
         <div id="message-container"></div>
       </div>
+
     </div>
     <div style="margin-left: 30%; margin-right: 30%;" class="fixed-bottom p-2">
       <form id="my-form">
-        {% comment %} {% csrf_token %} {% endcomment %}
+         {% csrf_token %}
         <div class="modal-header">
           <div>
-            <select id="analysis-options" data-style="w-75 rounded shadow bg-white" class="selectpicker"aria-label="Default select example" data-live-search="true">
-              <option value="1">One</option>
-              <option value="2">Two</option>
-              <option value="3">Three</option>
-              <option value="4">Four</option>
+            <select title="Выберите" id="analysis-options" data-style="w-75 rounded shadow bg-white" class="selectpicker"aria-label="Default select example" data-live-search="true">
+                <!--  Варианты для полного исследования/измения файла -->
+                <option id="full-analysis" selected value="heatmap">Тепловая карта</option>
+                <option id="full-analysis" value="all_rows">Показать все строки файла</option>
+                <option id="full-analysis" value="object_statistics">Статистика объектов</option>
+                <option id="full-analysis" value="drop_na">Удалить все NaN</option>
+                <option id="full-analysis" value="boxplot_graph">Ящик с усами</option>
+                <option id="full-analysis" value="back_to_roots">Вернуться в исходное положение</option>   
+                <!-- Варианты для исследования/измения отдельных строк -->
+                <option id="columns-analysis" value="delete_column">Удалить столбец</option>
+                <option id="columns-analysis" value="pie_plot">Круговая диаграмма</option>
             </select>
             
           </div>
           
           <div>
-            <select id="columns" data-style="w-75 rounded shadow bg-white" class="selectpicker" multiple aria-label="Default select example" data-live-search="true">
-                <option>Mustard</option>
-                <option>Ketchup</option>
-                <option>Relish</option>
-              </select>
-              
+            <select disabled title="Выберите строку" name="columns" id="columns" data-style="w-75 rounded shadow bg-white" class="selectpicker" aria-label="Default select example" data-live-search="true">
+            </select>
           </div>
          
-          <button type="submit" class="rounded shadow btn btn-primary rounded-pill" id="chat-submit">Send</button>
+          <button type="submit" class="rounded shadow btn btn-primary rounded-pill" id="chat-submit">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="m-1 bi bi-play-fill" viewBox="0 0 16 16">
+              <path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393z"/>
+            </svg>
+            
+          </button>
           
         </div>
       </form>
     </div>
   </div>
 
-  
-
-
   <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js'></script>
   <script src='https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-alpha.6/js/bootstrap.min.js'></script>
   
   <script>
+    
     var botAvatar = "{{ bot_avatar }}";
     var userAvatar = "{{ user_avatar }}";
     var userId = "{{user_id}}";
     var csvSlug = "{{csv_slug}}";
+    var threadId = {{messages.first.thread.id}}
   </script>
   <script src="{% static 'chat/js/script.js' %}"></script>
 
-  
   <script src='https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.14.0-beta2/js/bootstrap-select.min.js'></script>
 {% endblock %}

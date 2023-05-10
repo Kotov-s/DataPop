@@ -5,13 +5,13 @@
   <main class="m-auto w-50 bg-white ps-5 shadow rounded-5">
     <div class="pb-3 projects-section">
       <div class="projects-section-header">
-        <p>Upload CSV file to expolre</p>
+        <p>Загрузите CSV файл и начните исследовать</p>
       </div>
       <form action="" method="post" enctype="multipart/form-data">
         {% csrf_token %}
         <div class="col-md-6">
           {% for field in form %}
-            <label for="formFile" class="form-label">Upload {{ field.label }}</label>
+            <label for="formFile" class="form-label">Загрузить {{ field.label }}</label>
             {{ field|add_class:'form-control' }}
             {% if field.errors %}
               <ul class="errors">
@@ -23,7 +23,7 @@
           {% endfor %}
         </div>
         <p>
-          <button type="submit" class="btn btn-primary mt-3">Send</button>
+          <button type="submit" class="btn btn-primary mt-3">Загрузить</button>
         </p>
       </form>
     </div>
