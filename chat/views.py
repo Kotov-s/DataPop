@@ -5,21 +5,29 @@ from .forms import FileForm
 import os
 from django.conf import settings
 from django.utils import timezone
-from .models import Threads, Message
+from .models import Threads, Message, Explanation
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
 from . import data_analysis
 import shutil
 from django.template.loader import render_to_string
 
-def create_message(thread, my_title, file_path):
+def create_message(thread, my_title, file_path, explanation):
+    expl = Explanation.objects.get(id=explanation)
     Message.objects.create(
         thread=thread,
         title=my_title,
-        content_path=file_path
+        content_path=file_path,
+        explanation = expl
     )
+    thread.expl_enable
     html = render_to_string(file_path, {'title': my_title})
-    data = {'title': my_title, 'html': html}
+    data = {
+        'title': my_title, 
+        'html': html, 
+        'explanation': expl.explanation,
+        'enable': thread.expl_enable
+        }
     return data
 
 
@@ -41,10 +49,13 @@ def chat(request, user_id, csv_slug):
     return render(request, 'chat/chat.html', context)
 
 def file_form(request):
+    form = FileForm(request.POST or None, request.FILES or None)
     if request.method == "POST":
-        form = FileForm(request.POST, request.FILES)
         if form.is_valid():
             file = request.FILES['file']
+            title = form.cleaned_data['text']
+            enabled = form.cleaned_data['check']
+            
             file_name = 'data.csv'
             user_folder = f'users/user_{request.user.id}/csv'
             user_folder_path = os.path.join(settings.MEDIA_ROOT, user_folder)
@@ -66,25 +77,17 @@ def file_form(request):
             edited_file_path = os.path.join(user_folder_path, edited_file_name)
             shutil.copy2(unique_file_path, edited_file_path)
 
-            formatted_time = timezone.now().strftime('%Y-%m-%d %H:%M:%S')
-
             thread = Threads.objects.create(
                 user=User.objects.get(id=request.user.id),
                 csv_path=unique_file_path,
                 edited_csv_path=edited_file_path,
                 slug=f'{file_name[:-4]}_{i-1}',
-                title=f'The post was created in {formatted_time}'
+                title=title,
+                expl_enable=enabled
             )
             generate_report(thread.id, thread.slug, thread.user_id, thread.csv_path)
             return HttpResponseRedirect(f"/chat/{request.user.id}/{file_name[:-4]}_{i-1}")
-
-    # если GET (или другой меттод) будет создан этот контекст
-    else:
-        context = {
-            'form' : FileForm(),
-        }
-        
-    return render(request, "chat/form.html", context)
+    return render(request, "form.html", context={'form': form, 'form_title': 'Загрузите CSV файл и начните исследовать'})
 
 def generate_report(thread_id, csv_name, user_id, csv_path):
     user_folder = f'users/user_{user_id}/media/{csv_name}'
@@ -95,22 +98,14 @@ def generate_report(thread_id, csv_name, user_id, csv_path):
 
     data_analysis.first_analysis_file(csv_path, file_path)
 
+    expl = Explanation.objects.get(id=1)
     Message.objects.create(
+        explanation = expl,
         thread=Threads.objects.get(id=thread_id),
         title='Это ваш предварительный анализ данных',
         content_path=file_path
     )
-       
 
-def get_columns(request, user_id, csv_slug):
-    if request.method == 'POST':
-        thread_id = request.POST.get('threadId')
-        thread = Threads.objects.get(id=thread_id)
-        edited_csv_path = thread.edited_csv_path
-        
-        columns = data_analysis.get_columns(edited_csv_path)
-        data = {'columns': columns}
-        return JsonResponse(data)  
 
 def columns_func(request, analysis_func):
     if request.method == 'POST':
@@ -122,7 +117,7 @@ def columns_func(request, analysis_func):
         user_id = thread.user_id
         csv_slug = thread.slug
         my_title = 'Не удалось выполнить действие'
-        
+        explanation = 1
         if analysis_func != 'columns':
             file_path = create_file(user_id, csv_slug, analysis_func, formatted_time)
 
@@ -132,10 +127,12 @@ def columns_func(request, analysis_func):
             case 'delete_column':
                 data_analysis.delete_column(edited_csv_path, file_path, column_name)
                 my_title = 'Удалеие столбца'
+
             case 'pie_plot':
                 user_folder = f'users/user_{user_id}/{csv_slug}/img'
                 data_analysis.pie_plot(edited_csv_path, file_path, column_name, user_folder)
                 my_title = 'Круговая диаграмма'
+                explanation = 2
             case 'columns':
                 columns = data_analysis.get_columns(edited_csv_path)
                 data = {'columns': columns}
@@ -144,20 +141,24 @@ def columns_func(request, analysis_func):
             case 'drop_na':
                 data_analysis.drop_na(edited_csv_path, file_path)
                 my_title = 'Удалеие строк с NaN'
+                explanation = 3
             case 'object_statistics':
                 data_analysis.object_statistics(edited_csv_path, file_path)
-                my_title = 'Статистика объектов'  
+                my_title = 'Статистика объектов'
+                explanation = 4  
             case 'all_rows':
                 data_analysis.all_rows(edited_csv_path, file_path)
-                my_title = 'Все строки'
+                my_title = 'Все строки'  
             case 'heatmap':
                 data_analysis.heat_map(edited_csv_path, file_path)
                 my_title='Тепловая карта' 
+                explanation = 5  
             case 'boxplot_graph':
                 # Путь внутри папки chat/static/
                 user_folder = f'users/user_{user_id}/{csv_slug}/img'
                 data_analysis.boxplot_graph(edited_csv_path, file_path, user_folder)
                 my_title='Ящик с усами' 
+                explanation = 6
             case 'back_to_roots':
                 # Путь внутри папки chat/static/
                 csv_path = thread.csv_path
@@ -166,7 +167,7 @@ def columns_func(request, analysis_func):
             case _:
                 my_title='Не удалось найти функцию' 
         
-        data = create_message(thread, my_title, file_path)                 
+        data = create_message(thread, my_title, file_path, explanation)                 
         return JsonResponse(data) 
 
 

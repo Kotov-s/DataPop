@@ -118,21 +118,31 @@ function updateColumns() {
 }
 
 
-
 function createMessage(data) {
+
   var message = document.createElement("div");
+  message.classList.add("bg-white", "rounded", "p-3", "mx-3", "shadow", "mb-3", "overflow-auto", "w-75", "mx-auto");
 
   // Создаем заголовок
-  var header = document.createElement("h4");
+  var header = document.createElement("p");
+  header.classList.add("h4");
   header.innerText = data.title;
+  message.appendChild(header);
 
-  message.innerHTML = data.html;
-  message.classList.add("bg-white", "rounded", "p-3", "mx-3", "shadow", "mb-3", "overflow-auto");
+  if (data.enable) {
+    var explanation = document.createElement("div");
+    explanation.classList.add("alert", "alert-light", "font-monospace");
+    explanation.innerHTML = data.explanation;
+    message.appendChild(explanation);
+  }
 
-  // Добавляем заголовок в начало элемента
-  message.insertBefore(header, message.firstChild);
+  // Добавляем содержимое сообщения
+  var content = document.createElement("div");
+  content.innerHTML = data.html;
+  message.appendChild(content);
 
   var messageContainer = document.querySelector("#message-container");
   messageContainer.appendChild(message);
+
   window.scrollTo(0, document.body.scrollHeight);
 }

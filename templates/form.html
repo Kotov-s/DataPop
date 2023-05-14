@@ -5,14 +5,20 @@
   <main class="m-auto w-50 bg-white ps-5 shadow rounded-5">
     <div class="pb-3 projects-section">
       <div class="projects-section-header">
-        <p>Загрузите CSV файл и начните исследовать</p>
+        <p>{{form_title}}</p>
       </div>
       <form action="" method="post" enctype="multipart/form-data">
         {% csrf_token %}
         <div class="col-md-6">
           {% for field in form %}
-            <label for="formFile" class="form-label">Загрузить {{ field.label }}</label>
-            {{ field|add_class:'form-control' }}
+          <div class="mb-3">
+            <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}:</label>
+            {% if field.name != "check" %}
+              {{ field|add_class:"form-control" }}
+            {% else %}
+              {{field}}
+            {% endif %}
+          </div>
             {% if field.errors %}
               <ul class="errors">
                 {% for error in field.errors %}
@@ -23,7 +29,7 @@
           {% endfor %}
         </div>
         <p>
-          <button type="submit" class="btn btn-primary mt-3">Загрузить</button>
+          <button type="submit" class="btn btn-primary mt-1">Отправить</button>
         </p>
       </form>
     </div>

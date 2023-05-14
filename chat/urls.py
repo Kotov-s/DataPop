@@ -7,9 +7,6 @@ urlpatterns = [
     path('chat/<int:user_id>/<slug:csv_slug>', login_required(views.chat) ),
     path('', login_required(views.file_form) ),
 
-    # ajax get columns
-    # path('chat/columns/<int:user_id>/<slug:csv_slug>', login_required(views.get_columns) ),
-
     # ajax requests      
     path('chat/<slug:analysis_func>', login_required(views.columns_func) ),
 ]

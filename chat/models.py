@@ -2,6 +2,9 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 
+class Explanation(models.Model):
+    explanation = models.TextField(default='')
+
 class Threads(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     csv_path = models.CharField(max_length=200, default='')
@@ -9,9 +12,11 @@ class Threads(models.Model):
     slug = models.SlugField(default='')
     title = models.CharField(max_length=200, default='')
     created_at = models.DateTimeField(default=timezone.now)
+    expl_enable = models.BooleanField(default=False)
 
 class Message(models.Model):
     thread = models.ForeignKey(Threads, on_delete=models.CASCADE)
+    explanation = models.ForeignKey(Explanation, on_delete=models.CASCADE, default=1)
     title = models.CharField(max_length=200, default='')
     content_path = models.CharField(max_length=200, default='')
     created_at = models.DateTimeField(default=timezone.now)

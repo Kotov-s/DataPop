@@ -5,14 +5,12 @@ from django.shortcuts import render, redirect
 def register_view(request):
     form = UserCreationForm(request.POST or None)
     if form.is_valid():
-        user_obj = form.save()
+        form.save()
         return redirect('/login')
-    context = {"form": form}
-    return render(request, "accounts/register.html", context)
+    context = {"form": form, "form_title": 'Зарегистрируйтесь'}
+    return render(request, "form.html", context)
 
-# Create your views here.
 def login_view(request):
-    # future -> ?next=/articles/create/
     if request.method == "POST":
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
@@ -22,13 +20,18 @@ def login_view(request):
     else:
         form = AuthenticationForm(request)
     context = {
-        "form": form
+        "form": form,
+        "form_title": 'Войдите'
     }
-    return render(request, "accounts/login.html", context)
+    return render(request, "form.html", context)
 
 
 def logout_view(request):
     if request.method == "POST":
         logout(request)
         return redirect("/login/")
-    return render(request, "accounts/logout.html", {})
+    context = {
+        "form": '',
+        "form_title": 'Выход'
+    }
+    return render(request, "form.html", context)

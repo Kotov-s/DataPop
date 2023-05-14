@@ -166,7 +166,7 @@ def boxplot_graph(path_to_csv, path_to_html, path_to_png_dir):
                 formatted_time = now.strftime('%Y%m%d%H%M%S%f')
                 png_name = f'{col}boxplot{formatted_time}.png'
                 plt.savefig(os.path.join(img_folder_path, png_name))
-                f.write(f'<img class="img-fluid w-75" src="/static/chat/{path_to_png_dir}\{png_name}" alt="{col}">\n')
+                f.write(f'<img class="img-fluid w-100" src="/static/chat/{path_to_png_dir}\{png_name}" alt="{col}">\n')
                 f.write(f'<p class="m-3 text-center">Ящик с усами для столбца <strong>{col}</strong></p>\n')
         else:
             f.write(f'<p class="badge text-bg-danger">В вашем файле нет числовых столбцов. Невозможно построить язики с усами</p>\n')
@@ -187,7 +187,7 @@ def pie_plot(path_to_csv, path_to_html, column_name, path_to_png_dir):
         try:
             df = open_file(path_to_csv)
             counts = df[f'{column_name}'].value_counts()
-            plt.figure(figsize=(5, 5))
+            plt.figure(figsize=(7, 5))
             plt.clf()
             plt.pie(counts, labels=counts.index)
 
