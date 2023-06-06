@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block content %}
+
+  <form action="" method="get">
+    <div class="input-group m-auto mb-5 my-width shadow">
+      <input type="text" class="form-control" placeholder="Поиск треда" aria-label="Поиск треда" aria-describedby="button-addon2" name="search" />
+      <button class="btn btn-outline-secondary" type="submit" id="button-addon2">Найти</button>
+    </div>
+  </form>
+
+  {% for thread in page_obj %}
+    <div class="card m-auto mb-3 shadow my-width" style="border: 0px;">
+      <div class="card-body">
+        <h5 class="card-title">{{ thread.title }}</h5>
+        <p class="card-text">Тред был создан {{ thread.created_at }}</p>
+        <a href="{{ thread.id }}" class="btn btn-outline-secondary">Открыть</a>
+      </div>
+    </div>
+  {% endfor %}
+
+  {% include 'pub_threads/components/pagination.html' %}
+
+{% endblock %}

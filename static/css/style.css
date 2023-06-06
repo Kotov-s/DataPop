@@ -1,3 +1,92 @@
+
+.active-pagination-button:hover {
+    background-color: #f6fcff;
+    color: #000000;
+  }
+  
+  .inactive-pagination-button {
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    background-color: #1f1c2e;
+    color: white;
+    font-weight: bold;
+    text-align: center;
+    line-height: 30px;
+    text-decoration: none;
+    border-radius: 5px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .active-pagination-button {
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    background-color: white;
+    color: #000000;
+    font-weight: bold;
+    text-align: center;
+    line-height: 30px;
+    text-decoration: none;
+    border-radius: 5px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .inactive-pagination-button {
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    background-color: #1f1c2e;
+    color: white;
+    font-weight: bold;
+    text-align: center;
+    line-height: 30px;
+    text-decoration: none;
+    border-radius: 5px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+
+
+
+#message {
+    width: 75%;
+}
+
+#form {
+    width: 50%;
+}
+
+#message-container {
+    width: 75%;
+}
+
+#select {
+    margin-left: 20px;
+}
+
+#select-1{
+    margin-left: 20px;
+}
+
+#chat-submit {
+    margin-left: 20px;
+}
+
+#img-chart {
+    width: 75%;
+}
+
+
+.my-width {
+    width: 50%;
+}
+
+.select-width{
+    width: 150px;
+}
+
+
 .login-register-link {
     text-decoration: none;
     font-size: 14px;
@@ -26,6 +115,7 @@
 .home-link:hover {
     color: #36324b;
 }
+
 .projects-section-header {
     display: flex;
     justify-content: space-between;
@@ -52,9 +142,48 @@
 
 .alert {
     transition: all 1s ease-in-out;
-  }
-  
+}
+
 .alert.show {
-transform: translateY(0);
-box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    transform: translateY(0);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+
+@media (max-width: 600px) {
+
+    .my-width {
+        width: 90%;
+    }
+
+    #form {
+        width: 90%;
+    }
+
+    #chat-submit {
+        margin-left: 0px;
+    }
+
+    #select {
+        margin-left: 0px;
+        width: 150px;
+    }
+
+    #select-1{
+        margin-left: 0px;
+        width: 150px;
+    }
+
+    #message {
+        width: 90%;
+    }
+
+    #message-container {
+        width: 90%;
+    }
+
+    #img-chart {
+        width: 100%;
+    }
+    
 }

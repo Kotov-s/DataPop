@@ -23,13 +23,16 @@ def update(request, pk):
     thread = Threads.objects.get(id=pk)
     user_title = thread.title
     user_enable = thread.expl_enable
-    form = FileForm(request.POST or None, initial={'text': user_title, 'check': user_enable})
+    user_public = thread.is_public 
+    form = FileForm(request.POST or None, initial={'text': user_title, 'check': user_enable, 'public': user_public})
     if request.method == "POST":
         if form.is_valid():
             title = form.cleaned_data['text']
             enabled = form.cleaned_data['check']
+            public = form.cleaned_data['public']
             thread.title = title
             thread.expl_enable = enabled
+            thread.is_public = public
             thread.save()
             return HttpResponseRedirect(f"../")
     context = {

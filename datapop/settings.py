@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'chat.apps.ChatConfig',
     'accounts.apps.AccountsConfig',
     'table.apps.TableConfig',
+    'pub_threads.apps.PubThreadsConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

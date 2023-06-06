@@ -1,13 +1,40 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block content %}
-  <div id="body">
-    <div class="chat-box">
+<div>
+      <a class="bg-white btn shadow mx-4 position-fixed mt-5" href="#simple-list-item-1">  
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-up" viewBox="0 0 16 16">
+            <path fill-rule="evenodd" d="M7.646 4.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1-.708.708L8 5.707l-5.646 5.647a.5.5 0 0 1-.708-.708l6-6z"></path>
+          </svg>
+      </a>
+      <a class="bg-white bottom-50 btn mx-4 position-fixed shadow" href="#simple-list-item-2">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16">
+          <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
+        </svg>
+      </a>
+  </div>      
 
-     
+  <div id="body">
+    <div id="simple-list-item-1" class="chat-box">
         {% for message in messages %} 
-        <div class="bg-white rounded p-3 mx-3 shadow mb-3 overflow-auto w-75 mx-auto">
-          <p class="h4">{{message.title}}</p>
+        <div id="message" class="bg-white rounded p-3 mx-3 shadow mb-3 overflow-auto mx-auto">
+          <div class="container mb-3">
+            <div class="row ">
+            <p class="h4 col">{{message.title}}</p> 
+            
+
+            <div class="col modal-footer">
+              <form method="post"  action="/chat/delete/message/{{message.id}}">
+                {% csrf_token %}
+                <button class="btn btn-link" type="submit"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="text-danger bi bi-trash" viewBox="0 0 16 16">
+                  <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z"/>
+                  <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1ZM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118ZM2.5 3h11V2h-11v1Z"/>
+                  </svg>
+                </button>
+              </form>
+            </div>
+          </div>
+          </div> 
           {% if message.explanation.explanation != '' and message.thread.expl_enable%}
             <div class="alert alert-light font-monospace">{{ message.explanation.explanation|safe }}</div>
           {% endif %}
@@ -17,59 +44,48 @@
         {% endfor %}
     
       <div class="chat-box-body mb-5">
-        <div id="message-container"></div>
+        <div id="message-container" class="m-auto"></div>
       </div>
 
     </div>
-    <div style="margin-left: 30%; margin-right: 30%;" class="fixed-bottom p-2">
+    <div style="" class="fixed-bottom justify-content-center navbar">
       <form id="my-form">
-         {% csrf_token %}
-        <div class="modal-header">
-          <div>
-            <select title="Выберите" id="analysis-options" data-style="w-75 rounded shadow bg-white" class="selectpicker"aria-label="Default select example" data-live-search="true">
-                <!--  Варианты для полного исследования/измения файла -->
-                <option id="full-analysis" selected value="heatmap">Тепловая карта</option>
-                <option id="full-analysis" value="all_rows">Показать все строки файла</option>
-                <option id="full-analysis" value="object_statistics">Статистика объектов</option>
-                <option id="full-analysis" value="drop_na">Удалить все NaN</option>
-                <option id="full-analysis" value="boxplot_graph">Ящик с усами</option>
-                <option id="full-analysis" value="back_to_roots">Вернуться в исходное положение</option>   
-                <!-- Варианты для исследования/измения отдельных строк -->
-                <option id="columns-analysis" value="delete_column">Удалить столбец</option>
-                <option id="columns-analysis" value="pie_plot">Круговая диаграмма</option>
-            </select>
-            
-          </div>
-          
-          <div>
-            <select disabled title="Выберите строку" name="columns" id="columns" data-style="w-75 rounded shadow bg-white" class="selectpicker" aria-label="Default select example" data-live-search="true">
-            </select>
-          </div>
-         
-          <button type="submit" class="rounded shadow btn btn-primary rounded-pill" id="chat-submit">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="m-1 bi bi-play-fill" viewBox="0 0 16 16">
+        {% csrf_token %}
+        <div class="modal-header" >
+  
+            {% include 'chat/components/select-options.html' %}
+
+            <div id="select" class="form-group">
+              <select data-max-options="2" multiple title="Выберите строку" name="columns" id="columns" class="form-control shadow selectpicker"  >
+                {% for column in columns %}
+                <option value="{{column}}"> {{column}} </option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <button type="submit" class="rounded shadow btn btn-primary rounded-pill" id="chat-submit" value="click"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="m-1 bi bi-play-fill" viewBox="0 0 16 16">
               <path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393z"/>
-            </svg>
-            
-          </button>
-          
+              </svg>
+            </button>
         </div>
-      </form>
+    </form>
     </div>
+
+    
+<div id="simple-list-item-2"></div>
   </div>
 
-  <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js'></script>
-  <script src='https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-alpha.6/js/bootstrap.min.js'></script>
+  <script src='https://code.jquery.com/jquery-3.3.1.slim.min.js'></script>
   
   <script>
-    
     var botAvatar = "{{ bot_avatar }}";
     var userAvatar = "{{ user_avatar }}";
     var userId = "{{user_id}}";
     var csvSlug = "{{csv_slug}}";
     var threadId = {{messages.first.thread.id}}
+    var columns = {{ columns|safe }};
+    let prevSelections = [];
   </script>
   <script src="{% static 'chat/js/script.js' %}"></script>
 
-  <script src='https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.14.0-beta2/js/bootstrap-select.min.js'></script>
 {% endblock %}

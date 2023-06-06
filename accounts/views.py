@@ -34,4 +34,4 @@ def logout_view(request):
         "form": '',
         "form_title": 'Выход'
     }
-    return render(request, "form.html", context)
+    return render(request, "accounts/logout.html", context)

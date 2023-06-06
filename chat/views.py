@@ -11,14 +11,16 @@ from django.core.exceptions import PermissionDenied
 from . import data_analysis
 import shutil
 from django.template.loader import render_to_string
+import uuid
 
-def create_message(thread, my_title, file_path, explanation):
+def create_message(thread, my_title, file_path, explanation, message_uuid):
     expl = Explanation.objects.get(id=explanation)
     Message.objects.create(
         thread=thread,
         title=my_title,
         content_path=file_path,
-        explanation = expl
+        explanation = expl,
+        uuid = message_uuid
     )
     thread.expl_enable
     html = render_to_string(file_path, {'title': my_title})
@@ -39,12 +41,17 @@ def chat(request, user_id, csv_slug):
     
     thread = Threads.objects.get(user=request.user, slug=csv_slug)
     messages = Message.objects.filter(thread=thread)
+
+    edited_csv_path = thread.edited_csv_path
+    columns = data_analysis.get_columns(edited_csv_path)
+
     context = {
         'bot_avatar': static('chat/img/bot_avatar.jpg'),
         'user_avatar': static('chat/img/user_avatar.jpg'),
         'user_id': user_id,
         'csv_slug': csv_slug,
-        'messages': messages
+        'messages': messages,
+        'columns': columns
     }
     return render(request, 'chat/chat.html', context)
 
@@ -116,60 +123,141 @@ def columns_func(request, analysis_func):
         edited_csv_path = thread.edited_csv_path 
         user_id = thread.user_id
         csv_slug = thread.slug
+
+        # Задаем дефолтные значения
+        message_uuid = uuid.uuid4()
+
         my_title = 'Не удалось выполнить действие'
         explanation = 1
+
+        # Путь внутри папки chat/static/
+        user_folder = f'users/user_{user_id}/{csv_slug}/img/{message_uuid}'
+
         if analysis_func != 'columns':
             file_path = create_file(user_id, csv_slug, analysis_func, formatted_time)
 
-        column_name = request.POST.get('columnName')
+        column_name = request.POST.getlist('columnName[]')
 
-        match analysis_func:
-            case 'delete_column':
-                data_analysis.delete_column(edited_csv_path, file_path, column_name)
-                my_title = 'Удалеие столбца'
+        try:
+            match analysis_func:
+                case 'delete_column':
+                    data_analysis.delete_column(edited_csv_path, file_path, column_name)
+                    my_title = 'Удалеие столбца'
 
-            case 'pie_plot':
-                user_folder = f'users/user_{user_id}/{csv_slug}/img'
-                data_analysis.pie_plot(edited_csv_path, file_path, column_name, user_folder)
-                my_title = 'Круговая диаграмма'
-                explanation = 2
-            case 'columns':
-                columns = data_analysis.get_columns(edited_csv_path)
-                data = {'columns': columns}
-                return JsonResponse(data)  
+                case 'pie_plot':
+                    column_name = column_name[0]
+                    data_analysis.pie_plot(edited_csv_path, file_path, column_name, user_folder)
+                    my_title = 'Круговая диаграмма'
+                    explanation = 2
 
-            case 'drop_na':
-                data_analysis.drop_na(edited_csv_path, file_path)
-                my_title = 'Удалеие строк с NaN'
-                explanation = 3
-            case 'object_statistics':
-                data_analysis.object_statistics(edited_csv_path, file_path)
-                my_title = 'Статистика объектов'
-                explanation = 4  
-            case 'all_rows':
-                data_analysis.all_rows(edited_csv_path, file_path)
-                my_title = 'Все строки'  
-            case 'heatmap':
-                data_analysis.heat_map(edited_csv_path, file_path)
-                my_title='Тепловая карта' 
-                explanation = 5  
-            case 'boxplot_graph':
-                # Путь внутри папки chat/static/
-                user_folder = f'users/user_{user_id}/{csv_slug}/img'
-                data_analysis.boxplot_graph(edited_csv_path, file_path, user_folder)
-                my_title='Ящик с усами' 
-                explanation = 6
-            case 'back_to_roots':
-                # Путь внутри папки chat/static/
-                csv_path = thread.csv_path
-                data_analysis.back_to_roots(edited_csv_path, csv_path, file_path)
-                my_title='Исходное положение' 
-            case _:
-                my_title='Не удалось найти функцию' 
+                case 'columns':
+                    columns = data_analysis.get_columns(edited_csv_path)
+                    data = {'columns': columns}
+                    return JsonResponse(data)  
+
+                case 'drop_na':
+                    data_analysis.drop_na(edited_csv_path, file_path)
+                    my_title = 'Удалеие строк с NaN'
+                    explanation = 3
+
+                case 'object_statistics':
+                    data_analysis.object_statistics(edited_csv_path, file_path)
+                    my_title = 'Статистика объектов'
+                    explanation = 4  
+
+                case 'all_rows':
+                    data_analysis.all_rows(edited_csv_path, file_path)
+                    my_title = 'Все строки'  
+
+                case 'heatmap':
+                    data_analysis.heat_map(edited_csv_path, file_path)
+                    my_title='Тепловая карта' 
+                    explanation = 5  
+
+                case 'boxplot_graph':
+                    data_analysis.boxplot_graph(edited_csv_path, file_path, user_folder)
+                    my_title='Ящик с усами' 
+                    explanation = 6
+
+                case 'back_to_roots':
+                    csv_path = thread.csv_path
+                    data_analysis.back_to_roots(edited_csv_path, csv_path, file_path)
+                    my_title='Исходное положение' 
+
+                case 'non_object_statistics':
+                    data_analysis.non_object_statistics(edited_csv_path, file_path)
+                    my_title='Статистика не объектов' 
+                    explanation = 7  
+
+                case 'state_map_plot':
+                    data_analysis.state_map_plot(edited_csv_path, file_path, column_name, user_folder)
+                    my_title='Фоновая картограмма США' 
+                    explanation = 8  
+
+                case 'show_nans':
+                    data_analysis.show_nans(edited_csv_path, file_path)
+                    my_title='Пропущенные значения' 
+
+                case 'bar_plot':
+                    data_analysis.bar_plot(edited_csv_path, file_path, column_name, user_folder)
+                    my_title='Столбцовая диаграмма' 
+                    explanation = 9  
+
+                case 'histogram_graph':
+                    data_analysis.histogram_graph(edited_csv_path, file_path, user_folder)
+                    my_title='Гистограммы' 
+                    explanation = 10  
+
+                case 'scatter_plot':
+                    data_analysis.scatter_plot(edited_csv_path, file_path, column_name, user_folder)
+                    my_title='Диаграмма рассеяния' 
+                    explanation = 11  
+
+                case 'group_by_sum':
+                    data_analysis.group_by_sum(edited_csv_path, file_path, column_name)
+                    my_title='Группировка (Сумма)' 
+                    explanation = 11  
+
+                case 'group_by_mean':
+                    data_analysis.group_by_mean(edited_csv_path, file_path, column_name)
+                    my_title='Группировка (Средние)' 
+                    explanation = 11  
+
+                case 'dendrogram':
+                    data_analysis.dendrogram_plot(edited_csv_path, file_path, column_name, user_folder)
+                    my_title='dendrogram' 
+                    explanation = 11 
+
+                case _:
+                    my_title='Не удалось найти функцию' 
         
-        data = create_message(thread, my_title, file_path, explanation)                 
-        return JsonResponse(data) 
+            data = create_message(thread, my_title, file_path, explanation, message_uuid)                 
+            return JsonResponse(data) 
+        except Exception:
+            print(Exception)
 
+
+def delete_messsage(request, pk):
+    if request.method == 'POST':
+        message = Message.objects.get(id=pk)
+        thread = message.thread
+        slug = thread.slug
+        user_id = thread.user_id
+        content_path = message.content_path
+        
+        image_folder = f'users/user_{user_id}/{thread.slug}/img/{message.uuid}'
+        img_folder_path = os.path.join(settings.BASE_DIR / "chat/static/chat", image_folder)
+
+        print(img_folder_path)
+
+
+        if os.path.exists(img_folder_path):
+            shutil.rmtree(img_folder_path)
+
+        os.remove(content_path)
+
+        message.delete()
+        return HttpResponseRedirect(f"/chat/{user_id}/{slug}")
 
 def create_file(user_id, csv_slug, file_name, formatted_time):
     # Создаем директорию

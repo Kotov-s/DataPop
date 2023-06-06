@@ -1,0 +1,32 @@
+{% if paginator.num_pages > 1 %}
+    <div class="d-flex justify-content-center mt-4 mb-5 pagination">
+        <span class="step-links">
+            {% if page_obj.has_previous %}
+                <a class="active-pagination-button" href="?page={{ page_obj.previous_page_number }}&search={{ search_string|urlencode }}"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-left" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
+                </svg></a>
+            {% endif %}
+
+            {% for i in page_obj.paginator.page_range %}
+                {% if page_obj.number == i %}
+                    <span class="inactive-pagination-button">{{ i }}</span>
+                {% elif i > page_obj.number|add:'-5' and i < page_obj.number|add:'5' %}
+                    <a class="active-pagination-button" href="?page={{ i }}&search={{ search_string|urlencode }}">{{ i }}</a>
+                {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+                <a class="active-pagination-button" href="?page={{ page_obj.next_page_number }}&search={{ search_string|urlencode }}"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-right" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/>
+                </svg></a>
+            {% endif %}
+        </span>
+    </div>
+
+    {% if paginator.num_pages > 5 %}
+        <div class="d-flex justify-content-center">
+            {{page_obj.number}} из {{ paginator.num_pages }} страниц
+        </div>
+    {% endif %}
+
+{% endif %}

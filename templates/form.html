@@ -2,7 +2,15 @@
 {% load static %}
 {% load widget_tweaks %}
 {% block content %}
-  <main class="m-auto w-50 bg-white ps-5 shadow rounded-5">
+
+<style>
+
+
+
+
+</style>
+
+  <main id="form" class="m-auto bg-white ps-5 shadow rounded-5">
     <div class="pb-3 projects-section">
       <div class="projects-section-header">
         <p>{{form_title}}</p>
@@ -13,7 +21,7 @@
           {% for field in form %}
           <div class="mb-3">
             <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}:</label>
-            {% if field.name != "check" %}
+            {% if field.name != "check" and  field.name != "public"%}
               {{ field|add_class:"form-control" }}
             {% else %}
               {{field}}
