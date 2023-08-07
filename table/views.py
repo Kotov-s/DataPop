@@ -34,12 +34,10 @@ def update(request, pk):
             thread.expl_enable = enabled
             thread.is_public = public
             thread.save()
-            return HttpResponseRedirect(f"../")
+            return HttpResponseRedirect("/table")
     context = {
         'form_title': 'Обновите тред',
-        'form': form,
-        'title': user_title,
-        'enable': user_enable
+        'form': form
     }
     return render(request, 'form.html', context)
 

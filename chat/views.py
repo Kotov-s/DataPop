@@ -13,14 +13,14 @@ import shutil
 from django.template.loader import render_to_string
 import uuid
 
-def create_message(thread, my_title, file_path, explanation, message_uuid):
+def create_message(thread, my_title, file_path, explanation, img_folder):
     expl = Explanation.objects.get(id=explanation)
     Message.objects.create(
         thread=thread,
         title=my_title,
         content_path=file_path,
         explanation = expl,
-        uuid = message_uuid
+        image_folder = img_folder
     )
     thread.expl_enable
     html = render_to_string(file_path, {'title': my_title})
@@ -125,13 +125,13 @@ def columns_func(request, analysis_func):
         csv_slug = thread.slug
 
         # Задаем дефолтные значения
-        message_uuid = uuid.uuid4()
+        img_folder = uuid.uuid4()
 
         my_title = 'Не удалось выполнить действие'
         explanation = 1
 
         # Путь внутри папки chat/static/
-        user_folder = f'users/user_{user_id}/{csv_slug}/img/{message_uuid}'
+        user_folder = f'users/user_{user_id}/img/{csv_slug}/{img_folder}'
 
         if analysis_func != 'columns':
             file_path = create_file(user_id, csv_slug, analysis_func, formatted_time)
@@ -216,22 +216,17 @@ def columns_func(request, analysis_func):
                 case 'group_by_sum':
                     data_analysis.group_by_sum(edited_csv_path, file_path, column_name)
                     my_title='Группировка (Сумма)' 
-                    explanation = 11  
+                    explanation = 12  
 
                 case 'group_by_mean':
                     data_analysis.group_by_mean(edited_csv_path, file_path, column_name)
                     my_title='Группировка (Средние)' 
-                    explanation = 11  
-
-                case 'dendrogram':
-                    data_analysis.dendrogram_plot(edited_csv_path, file_path, column_name, user_folder)
-                    my_title='dendrogram' 
-                    explanation = 11 
+                    explanation = 13  
 
                 case _:
                     my_title='Не удалось найти функцию' 
         
-            data = create_message(thread, my_title, file_path, explanation, message_uuid)                 
+            data = create_message(thread, my_title, file_path, explanation, img_folder)                 
             return JsonResponse(data) 
         except Exception:
             print(Exception)
@@ -245,11 +240,10 @@ def delete_messsage(request, pk):
         user_id = thread.user_id
         content_path = message.content_path
         
-        image_folder = f'users/user_{user_id}/{thread.slug}/img/{message.uuid}'
-        img_folder_path = os.path.join(settings.BASE_DIR / "chat/static/chat", image_folder)
+        image_folder = f'users/user_{user_id}/img/{thread.slug}/{message.uuid}'
+        img_folder_path = os.path.join(settings.BASE_DIR / "media", image_folder)
 
         print(img_folder_path)
-
 
         if os.path.exists(img_folder_path):
             shutil.rmtree(img_folder_path)

@@ -23,4 +23,4 @@ class Message(models.Model):
     title = models.CharField(max_length=200, default='')
     content_path = models.CharField(max_length=200, default='')
     created_at = models.DateTimeField(default=timezone.now)
-    uuid = models.UUIDField(default=uuid.uuid4, editable=False)
+    image_folder = models.UUIDField(default=uuid.uuid4, editable=False)

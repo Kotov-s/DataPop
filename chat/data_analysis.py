@@ -19,11 +19,12 @@ from scipy.cluster.hierarchy import dendrogram, linkage
 
 
 def open_file(path_to_csv):
-    try:
-        return pd.read_csv(path_to_csv, sep=',', engine='python', header=0,
-                        encoding='windows-1251', na_values=[''])
-    except:
-        return pd.read_csv(path_to_csv, sep=',', engine='python', header=0, na_values=[''])
+    encodings = ['utf-8', 'windows-1251', 'iso-8859-1']
+    for encoding in encodings:
+        try:
+            return pd.read_csv(path_to_csv, sep=None, engine='python', header=0, encoding=encoding)
+        except UnicodeDecodeError:
+            print(UnicodeDecodeError)
 
 
 def get_columns(path_to_csv):
@@ -36,13 +37,13 @@ def get_columns(path_to_csv):
 
 
 def save_plot_and_update_html(plt, path_to_png_dir, path_to_html, plot_type):
-    img_folder_path = os.path.join(settings.BASE_DIR / "chat/static/chat", path_to_png_dir)
+    img_folder_path = os.path.join(settings.BASE_DIR / "media", path_to_png_dir)
     os.makedirs(img_folder_path, exist_ok=True)
     now = datetime.datetime.now()
     formatted_time = now.strftime('%Y%m%d%H%M%S%f')
     png_name = f'{plot_type}{formatted_time}.png'
     plt.savefig(os.path.join(img_folder_path, png_name))
-    write_html_content(path_to_html, f'<img id="img-chart" class="mx-auto d-flex" src="/static/chat/{path_to_png_dir}\{png_name}" alt="{plot_type}">\n')
+    write_html_content(path_to_html, f'<img id="img-chart" class="mx-auto d-flex" src="/media/{path_to_png_dir}\{png_name}" alt="{plot_type}">\n')
 
 
 def write_html_content(path_to_html, content):

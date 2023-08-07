@@ -64,11 +64,12 @@ function checkSelectedOption() {
     if (analysisOption == 'state_map_plot') {
       showAlert('Выберите колонку с штатами и колонку для анализа.', 'primary', 4);
     }
+    else {
+      showAlert('Выберите колонки для анализа', 'primary');
+    }
 
     rebuildSelect(myArray, selectDiv, false, '2');
 
-
-    showAlert('Выберите колонки для анализа', 'primary');
   }
   else {
     rebuildSelect(myArray, selectDiv, true, '0');
